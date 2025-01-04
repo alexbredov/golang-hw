@@ -42,6 +42,7 @@ var text = `Как видите, он  спускается  по  лестни�
 	иногда,  особенно  когда  папа  дома,  он больше любит тихонько
 	посидеть у огня и послушать какую-нибудь интересную сказку.
 		В этот вечер...`
+
 var text2 = `Рассеянность – это органическое или функциональное снижение 
 	способности к совершению сосредоточенной целенаправленной деятельности.
 	В узком смысле под рассеянностью понимают нарушение концентрации внимания. 
@@ -61,13 +62,14 @@ var text2 = `Рассеянность – это органическое или
 	Ученическая форма рассеянности обусловлена чрезмерной переключаемостью и подвижностью 
 	мыслительных процессов. Такое расстройство характерно для детей, связано не с отсутствием 
 	концентрации, а с неспособностью удерживать ее длительное время.`
+
 var text3 = `Go was designed at Google in 2007 to improve programming productivity in an era of multicore, 
 	networked machines and large codebases. 
 	The designers wanted to address criticisms of other languages in use at Google, but keep their 
 	useful characteristics: 
-	  Static typing and run-time efficiency (like C) 
-	  Readability and usability (like Python) 
-	  High-performance networking and multiprocessing  
+		Static typing and run-time efficiency (like C) 
+		Readability and usability (like Python) 
+		High-performance networking and multiprocessing  
 	Its designers were primarily motivated by their shared dislike of C++. 
 	Go was publicly announced in November 2009, and version 1.0 was released in March 2012. Go is widely 
 	used in production at Google and in many other organizations and open-source projects.`
