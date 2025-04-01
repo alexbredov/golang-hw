@@ -73,6 +73,7 @@ var text3 = `Go was designed at Google in 2007 to improve programming productivi
 	Its designers were primarily motivated by their shared dislike of C++. 
 	Go was publicly announced in November 2009, and version 1.0 was released in March 2012. Go is widely 
 	used in production at Google and in many other organizations and open-source projects.`
+var text4 = `test text test`
 
 func TestTop10(t *testing.T) {
 	t.Run("no words in empty string", func(t *testing.T) {
@@ -139,5 +140,12 @@ func TestTop10(t *testing.T) {
 			"other",     // 2
 		}
 		require.Equal(t, expected, Top10(text3))
+	})
+	t.Run("short test", func(t *testing.T) {
+		expected := []string{
+			"test", // 2
+			"text", // 1
+		}
+		require.Equal(t, expected, Top10(text4))
 	})
 }

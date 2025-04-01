@@ -12,9 +12,14 @@ func Top10(line string) []string {
 	}
 	r := regexp.MustCompile(`\s+`)
 	line2 := r.ReplaceAllString(line, " ")
+	line2 = strings.TrimSpace(line2)
 	pairs := rankByWordCounter(line2)
-	keys := []string{}
-	for _, pair := range pairs[:10] {
+	keys := make([]string, 0, len(pairs))
+	lim := 10
+	if len(pairs) < lim {
+		lim = len(pairs)
+	}
+	for _, pair := range pairs[:lim] {
 		keys = append(keys, pair.Key)
 	}
 	return keys
@@ -29,9 +34,12 @@ func rankByWordCounter(line string) []Pair {
 	wordsKey := make(map[string]int)
 	words := strings.Split(line, " ")
 	for _, word := range words {
+		if word == "" {
+			continue
+		}
 		wordsKey[word]++
 	}
-	sortedslice := []Pair{}
+	sortedslice := make([]Pair, 0, len(wordsKey))
 	for k, v := range wordsKey {
 		sortedslice = append(sortedslice, Pair{k, v})
 	}
