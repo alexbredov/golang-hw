@@ -68,6 +68,7 @@ func (cache *lruCache) Get(key Key) (interface{}, bool) {
 	}
 	return value, keyMatch
 }
+
 func (cache *lruCache) Clear() {
 	if cache == nil {
 		panic("cache is nil")
@@ -83,6 +84,7 @@ func (cache *lruCache) Clear() {
 	}
 	clear(cache.items)
 }
+
 func (cache *lruCache) Len() int {
 	return cache.queue.Len()
 }

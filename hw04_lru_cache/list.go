@@ -119,6 +119,7 @@ func (l *list) MoveToFront(item *ListItem) {
 		l.front = item
 	}
 }
+
 func NewList() List {
 	return new(list)
 }
