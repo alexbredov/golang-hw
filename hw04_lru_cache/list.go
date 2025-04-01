@@ -51,6 +51,7 @@ func (l *list) PushFront(v interface{}) *ListItem {
 		l.back = litem
 	}
 	l.length++
+	l.front = litem
 	return l.front
 }
 
