@@ -47,33 +47,49 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	if fileInfo.Size() == 0 {
 		return ErrNoOriginalFileSize
 	}
-	target, err := os.Create(toPath)
+	var totalToCopy int64
+	if limit == 0 || offset+limit > fileInfo.Size() {
+		totalToCopy = fileInfo.Size() - offset
+	} else {
+		totalToCopy = limit
+	}
+	targetFile, err := os.Create(toPath)
 	if err != nil {
 		return ErrFileCreate
 	}
-	defer target.Close()
-	pBar := pb.Full.Start64(limit)
-	var buf []byte
-	if limit == 0 {
-		read, err := io.ReadAll(file)
-		buf = read[offset:]
-		if err != nil {
-			return err
-		}
-	} else {
-		var bufLength int64
-		if offset+limit > fileInfo.Size() {
-			bufLength = fileInfo.Size() - offset
-		} else {
-			bufLength = limit
-		}
-		buf = make([]byte, bufLength)
-		file.ReadAt(buf, offset)
-		pBar.Finish()
-	}
-	_, err = target.Write(buf)
+	defer targetFile.Close()
+	pBar := pb.Full.Start64(totalToCopy)
+	defer pBar.Finish()
+	_, err = file.Seek(offset, io.SeekStart)
 	if err != nil {
 		return err
+	}
+	bufSize := 1024
+	buf := make([]byte, bufSize)
+	var copied int64
+	for copied < totalToCopy {
+		bytesLeft := totalToCopy - copied
+		if int64(bufSize) > bytesLeft {
+			buf = make([]byte, bytesLeft)
+		}
+		n, err := file.Read(buf)
+		if n > 0 {
+			written, writeErr := targetFile.Write(buf[:n])
+			if writeErr != nil {
+				return writeErr
+			}
+			if written < n {
+				return io.ErrShortWrite
+			}
+			copied += int64(n)
+			pBar.Add(n)
+		}
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
 	}
 	return nil
 }
