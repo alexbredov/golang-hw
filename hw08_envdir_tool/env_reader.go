@@ -53,7 +53,7 @@ func ReadDir(dir string) (Environment, error) {
 				fmt.Printf("failed to read file %v: %v\n", fileName, err)
 				continue
 			}
-			line = strings.Trim(line, "\t '\"")
+			line = strings.TrimRight(line, "\t")
 			envDirMap[envName] = EnvValue{Value: line, NeedRemove: false}
 			file.Close()
 		}
