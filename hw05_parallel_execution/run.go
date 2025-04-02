@@ -71,13 +71,11 @@ func Run(tasks []Task, n, m int) error {
 		close(doneChan)
 		fmt.Println("[RUNNER] All workers finished")
 	}()
-	select {
-	case <-doneChan:
-		if atomic.LoadInt32(&tr.errorsCount) >= int32(m) {
-			fmt.Printf("[RUNNER] Error limit exceeded (%d/%d)\n", tr.errorsCount, m)
-			return ErrErrorsLimitExceeded
-		}
-		fmt.Printf("[RUNNER] All tasks completed (%d/%d)\n", tr.runTasksCount, tr.tasksCount)
+	<-doneChan
+	if atomic.LoadInt32(&tr.errorsCount) >= int32(m) {
+		fmt.Printf("[RUNNER] Error limit exceeded (%d/%d)\n", tr.errorsCount, m)
+		return ErrErrorsLimitExceeded
 	}
+	fmt.Printf("[RUNNER] All tasks completed (%d/%d)\n", tr.runTasksCount, tr.tasksCount)
 	return nil
 }
