@@ -54,8 +54,8 @@ func (cache *lruCache) Get(key Key) (interface{}, bool) {
 	if cache == nil {
 		panic("cache is nil")
 	}
-	cache.RLock()
-	defer cache.RUnlock()
+	cache.Lock()
+	defer cache.Unlock()
 	_, ok := cache.items[key]
 	var litem *ListItem
 	var value any
@@ -86,6 +86,8 @@ func (cache *lruCache) Clear() {
 }
 
 func (cache *lruCache) Len() int {
+	cache.RLock()
+	defer cache.RUnlock()
 	return cache.queue.Len()
 }
 

@@ -1,7 +1,5 @@
 package hw04lrucache
 
-import "sync"
-
 type List interface {
 	Len() int
 	Front() *ListItem
@@ -19,7 +17,6 @@ type ListItem struct {
 }
 
 type list struct {
-	sync.RWMutex
 	length int
 	front  *ListItem
 	back   *ListItem
@@ -41,8 +38,6 @@ func (l *list) PushFront(v interface{}) *ListItem {
 	if l == nil {
 		panic("list is nil")
 	}
-	l.Lock()
-	defer l.Unlock()
 	litem := &ListItem{Value: v, Prev: nil, Next: l.front}
 	if l.front != nil {
 		l.front.Prev = litem
@@ -59,8 +54,6 @@ func (l *list) PushBack(v interface{}) *ListItem {
 	if l == nil {
 		panic("list is nil")
 	}
-	l.Lock()
-	defer l.Unlock()
 	litem := &ListItem{Value: v, Prev: l.back, Next: nil}
 	if l.back != nil {
 		l.back.Next = litem
@@ -77,8 +70,6 @@ func (l *list) Remove(item *ListItem) {
 	if l == nil {
 		panic("list is nil")
 	}
-	l.Lock()
-	defer l.Unlock()
 	if item != nil && l.length > 0 {
 		switch {
 		case l.length == 1:
@@ -103,8 +94,6 @@ func (l *list) MoveToFront(item *ListItem) {
 	if l == nil {
 		panic("list is nil")
 	}
-	l.Lock()
-	defer l.Unlock()
 	if item != nil && l.length > 1 && item != l.front {
 		if item == l.back {
 			l.back = item.Prev
