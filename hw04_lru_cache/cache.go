@@ -10,13 +10,15 @@ type Cache interface {
 	Clear()
 	Len() int
 }
-
+type cacheEntry struct {
+	key   Key
+	value interface{}
+}
 type lruCache struct {
 	sync.RWMutex
 	capacity int
 	queue    List
 	items    map[Key]*ListItem
-	keys     map[*ListItem]Key
 }
 
 func (cache *lruCache) Set(key Key, value interface{}) bool {
@@ -25,29 +27,23 @@ func (cache *lruCache) Set(key Key, value interface{}) bool {
 	}
 	cache.Lock()
 	defer cache.Unlock()
-	_, ok := cache.items[key]
-	var litem *ListItem
-	keyMatch := false
-	if ok {
-		litem = cache.items[key]
-		litem.Value = value
-		cache.queue.MoveToFront(litem)
-		keyMatch = true
-	} else {
-		litem = cache.queue.PushFront(value)
-		cache.items[key] = litem
-		cache.keys[litem] = key
-		if cache.queue.Len() > cache.capacity {
-			litem = cache.queue.Back()
-			key, ok = cache.keys[litem]
-			if ok {
-				delete(cache.items, key)
-				delete(cache.keys, litem)
-			}
-			cache.queue.Remove(litem)
-		}
+	if item, ok := cache.items[key]; ok {
+		entry := item.Value.(cacheEntry)
+		entry.value = value
+		item.Value = entry
+		cache.queue.MoveToFront(item)
+		return true
 	}
-	return keyMatch
+	entry := cacheEntry{key, value}
+	listItem := cache.queue.PushFront(entry)
+	cache.items[key] = listItem
+	if cache.queue.Len() > cache.capacity {
+		oldest := cache.queue.Back()
+		oldestEntry := oldest.Value.(cacheEntry)
+		delete(cache.items, oldestEntry.key)
+		cache.queue.Remove(oldest)
+	}
+	return false
 }
 
 func (cache *lruCache) Get(key Key) (interface{}, bool) {
@@ -56,17 +52,12 @@ func (cache *lruCache) Get(key Key) (interface{}, bool) {
 	}
 	cache.Lock()
 	defer cache.Unlock()
-	_, ok := cache.items[key]
-	var litem *ListItem
-	var value any
-	keyMatch := false
-	if ok {
-		litem = cache.items[key]
-		value = litem.Value
-		cache.queue.MoveToFront(litem)
-		keyMatch = true
+	if item, ok := cache.items[key]; ok {
+		cache.queue.MoveToFront(item)
+		entry := item.Value.(cacheEntry)
+		return entry.value, true
 	}
-	return value, keyMatch
+	return nil, false
 }
 
 func (cache *lruCache) Clear() {
@@ -78,9 +69,6 @@ func (cache *lruCache) Clear() {
 	for key, value := range cache.items {
 		cache.queue.Remove(value)
 		delete(cache.items, key)
-	}
-	for key := range cache.keys {
-		delete(cache.keys, key)
 	}
 	clear(cache.items)
 }
@@ -96,6 +84,5 @@ func NewCache(capacity int) Cache {
 		capacity: capacity,
 		queue:    NewList(),
 		items:    make(map[Key]*ListItem, capacity),
-		keys:     make(map[*ListItem]Key, capacity),
 	}
 }
