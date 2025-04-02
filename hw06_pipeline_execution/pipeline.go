@@ -8,6 +8,33 @@ type (
 
 type Stage func(in In) (out Out)
 
+func drainStage(stageOut In) {
+	for v := range stageOut {
+		_ = v // for lint
+	}
+}
+
+func processStage(done In, stageOut In, out Bi) {
+	defer close(out)
+	for {
+		select {
+		case <-done:
+			go drainStage(stageOut)
+			return
+		case value, ok := <-stageOut:
+			if !ok {
+				return
+			}
+			select {
+			case out <- value:
+			case <-done:
+				go drainStage(stageOut)
+				return
+			}
+		}
+	}
+}
+
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
 	if len(stages) == 0 {
 		return in
@@ -15,32 +42,7 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 	for _, stage := range stages {
 		stageOut := stage(in)
 		out := make(Bi, 1)
-		go func(stageOut In, out Bi) {
-			defer close(out)
-			for {
-				select {
-				case <-done:
-					go func() {
-						for range stageOut {
-						}
-					}()
-					return
-				case v, ok := <-stageOut:
-					if !ok {
-						return
-					}
-					select {
-					case out <- v:
-					case <-done:
-						go func() {
-							for range stageOut {
-							}
-						}()
-						return
-					}
-				}
-			}
-		}(stageOut, out)
+		go processStage(done, stageOut, out)
 		in = out
 	}
 	return in
